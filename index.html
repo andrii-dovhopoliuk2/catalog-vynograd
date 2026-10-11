@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Каталог винограду — чубуки та саджанці</title>
+<style>
+  :root{
+    --green:#4a7c2f;
+    --green-dark:#36601f;
+    --accent:#8b4a8b;
+    --bg:#f6f4ec;
+    --card:#ffffff;
+    --text:#2b2b2b;
+    --muted:#777;
+    --border:#e3e0d6;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;font-family:"Segoe UI",system-ui,-apple-system,sans-serif;
+    background:var(--bg);color:var(--text);line-height:1.5;
+  }
+  header{
+    background:linear-gradient(135deg,var(--green),var(--green-dark));
+    color:#fff;padding:30px 20px;text-align:center;
+  }
+  header h1{margin:0 0 8px;font-size:28px;}
+  header p{margin:4px 0;opacity:.95;}
+  .prices{
+    display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:14px;
+  }
+  .price-tag{
+    background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.4);
+    padding:8px 18px;border-radius:30px;font-size:15px;font-weight:600;
+  }
+  .contacts{
+    margin-top:16px;display:flex;gap:10px 28px;justify-content:center;flex-wrap:wrap;
+    font-size:15px;
+  }
+  .contacts a{color:#fff;text-decoration:none;font-weight:700;}
+  .contacts a:hover{text-decoration:underline;}
+  .contacts .ci{display:inline-flex;align-items:center;gap:7px;}
+  .contacts svg{width:17px;height:17px;fill:#fff;opacity:.9;}
+  .controls{
+    position:sticky;top:0;z-index:10;background:var(--bg);
+    padding:16px 20px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;
+    justify-content:center;border-bottom:1px solid var(--border);
+  }
+  .controls input,.controls select{
+    padding:10px 14px;border:1px solid var(--border);border-radius:8px;
+    font-size:14px;background:#fff;
+  }
+  .controls input{min-width:220px;}
+  .count{color:var(--muted);font-size:14px;}
+  main{max-width:1200px;margin:0 auto;padding:24px 20px 60px;}
+  .grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px;
+  }
+  .card{
+    background:var(--card);border:1px solid var(--border);border-radius:14px;
+    overflow:hidden;display:flex;flex-direction:column;
+    box-shadow:0 2px 6px rgba(0,0,0,.05);transition:transform .15s,box-shadow .15s;
+  }
+  .card:hover{transform:translateY(-3px);box-shadow:0 6px 18px rgba(0,0,0,.1);}
+  .photo{
+    aspect-ratio:4/3;background:#efece2;display:flex;align-items:center;
+    justify-content:center;color:#b7b2a3;font-size:14px;text-align:center;
+    position:relative;overflow:hidden;
+  }
+  .photo img{width:100%;height:100%;object-fit:cover;display:block;}
+  .photo .ph{padding:0 12px;}
+  .photo .ph svg{width:46px;height:46px;opacity:.5;display:block;margin:0 auto 6px;}
+  .badge{
+    position:absolute;top:10px;left:10px;background:var(--accent);color:#fff;
+    font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;
+  }
+  .badge.kishmish{background:#c67b1f;}
+  .body{padding:14px 16px;flex:1;display:flex;flex-direction:column;}
+  .name{font-size:18px;font-weight:700;margin:0 0 4px;color:var(--green-dark);}
+  .meta{font-size:13px;color:var(--muted);margin-bottom:10px;}
+  .specs{list-style:none;padding:0;margin:0 0 12px;font-size:13px;}
+  .specs li{display:flex;justify-content:space-between;gap:8px;padding:3px 0;border-bottom:1px dashed var(--border);}
+  .specs li span:first-child{color:var(--muted);}
+  .specs li span:last-child{font-weight:600;text-align:right;}
+  .avail{
+    margin-top:auto;display:flex;gap:8px;flex-wrap:wrap;
+  }
+  .avail .item{
+    flex:1;min-width:110px;background:#f3f7ee;border:1px solid #dde8d2;
+    border-radius:8px;padding:8px;text-align:center;
+  }
+  .avail .item .t{font-size:12px;color:var(--muted);}
+  .avail .item .p{font-size:16px;font-weight:700;color:var(--green-dark);}
+  .color-dot{display:inline-block;width:11px;height:11px;border-radius:50%;vertical-align:middle;margin-right:5px;border:1px solid rgba(0,0,0,.15);}
+  .card{cursor:pointer;}
+  .more-hint{font-size:12px;color:var(--accent);margin-top:8px;text-align:center;font-weight:600;}
+
+  /* ---- Модалка сорту ---- */
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:100;
+    display:none;align-items:flex-start;justify-content:center;
+    padding:30px 16px;overflow-y:auto;
+  }
+  .modal-overlay.open{display:flex;}
+  .modal{
+    background:#fff;border-radius:16px;max-width:860px;width:100%;
+    overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3);
+    display:grid;grid-template-columns:1fr 1fr;animation:pop .18s ease;
+  }
+  @keyframes pop{from{transform:scale(.96);opacity:0;}to{transform:scale(1);opacity:1;}}
+  @media(max-width:680px){.modal{grid-template-columns:1fr;}}
+  .modal-gallery{background:#111;display:flex;flex-direction:column;}
+  .mg-main{
+    aspect-ratio:4/3;background:#1a1a1a;display:flex;align-items:center;
+    justify-content:center;position:relative;overflow:hidden;cursor:zoom-in;
+  }
+  .mg-main img{width:100%;height:100%;object-fit:cover;}
+  .mg-main .ph{color:#777;text-align:center;font-size:14px;padding:0 20px;cursor:default;}
+  .mg-main .ph svg{width:54px;height:54px;opacity:.4;display:block;margin:0 auto 8px;}
+  .mg-thumbs{display:flex;gap:6px;padding:8px;overflow-x:auto;background:#000;}
+  .mg-thumbs img{
+    width:56px;height:56px;object-fit:cover;border-radius:6px;cursor:pointer;
+    opacity:.55;border:2px solid transparent;flex:0 0 auto;transition:.15s;
+  }
+  .mg-thumbs img.active,.mg-thumbs img:hover{opacity:1;border-color:var(--green);}
+  .modal-info{padding:22px 24px;overflow-y:auto;max-height:80vh;}
+  .modal-info h2{margin:0 0 4px;color:var(--green-dark);font-size:24px;}
+  .modal-info .sub{color:var(--muted);font-size:14px;margin-bottom:14px;}
+  .modal-info .desc{font-size:14.5px;margin-bottom:16px;}
+  .modal-close{
+    position:absolute;top:14px;right:16px;background:rgba(0,0,0,.5);color:#fff;
+    border:none;width:38px;height:38px;border-radius:50%;font-size:22px;cursor:pointer;
+    z-index:5;line-height:1;
+  }
+  .modal-close:hover{background:rgba(0,0,0,.8);}
+  .modal .specs li span:last-child{color:var(--green-dark);}
+  .modal .avail{margin-top:16px;}
+
+  /* ---- Лайтбокс (фото на весь екран) ---- */
+  .lightbox{
+    position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:200;
+    display:none;align-items:center;justify-content:center;
+  }
+  .lightbox.open{display:flex;}
+  .lightbox img{max-width:92vw;max-height:88vh;object-fit:contain;border-radius:6px;}
+  .lb-btn{
+    position:absolute;background:rgba(255,255,255,.14);color:#fff;border:none;
+    width:52px;height:52px;border-radius:50%;font-size:26px;cursor:pointer;line-height:1;
+  }
+  .lb-btn:hover{background:rgba(255,255,255,.3);}
+  .lb-prev{left:20px;top:50%;transform:translateY(-50%);}
+  .lb-next{right:20px;top:50%;transform:translateY(-50%);}
+  .lb-close{top:20px;right:20px;}
+  .lb-counter{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);color:#fff;font-size:14px;background:rgba(0,0,0,.4);padding:6px 14px;border-radius:20px;}
+
+  footer{text-align:center;padding:24px;color:var(--muted);font-size:13px;}
+  footer a{color:var(--green-dark);}
+
+  /* ================= АДАПТИВ ПІД ПЛАНШЕТИ ================= */
+  @media(max-width:720px){
+    header{padding:22px 16px;}
+    header h1{font-size:23px;}
+    .controls{padding:12px 14px;gap:10px;}
+    .grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;}
+    main{padding:18px 14px 50px;}
+  }
+
+  /* ================= АДАПТИВ ПІД ТЕЛЕФОНИ ================= */
+  @media(max-width:520px){
+    header{padding:18px 14px;}
+    header h1{font-size:20px;}
+    header p{font-size:14px;}
+    .prices{gap:8px;margin-top:10px;}
+    .price-tag{font-size:13px;padding:6px 14px;}
+    .contacts{flex-direction:column;align-items:center;gap:6px;margin-top:12px;font-size:14px;}
+
+    /* фільтри — кожен на всю ширину, зручно тицяти пальцем */
+    .controls{flex-direction:column;align-items:stretch;gap:8px;position:static;}
+    .controls input,.controls select{width:100%;min-width:0;font-size:16px;padding:12px;}
+    .count{text-align:center;}
+
+    /* сітка карток — 1 колонка */
+    .grid{grid-template-columns:1fr;gap:14px;}
+    main{padding:14px 12px 40px;}
+    .card:hover{transform:none;}
+
+    /* модалка на весь екран */
+    .modal-overlay{padding:0;}
+    .modal{border-radius:0;min-height:100vh;grid-template-columns:1fr;}
+    .modal-info{max-height:none;padding:18px 18px 40px;}
+    .modal-info h2{font-size:21px;}
+    .mg-main{aspect-ratio:1/1;}
+    .modal-close{width:42px;height:42px;font-size:24px;}
+
+    /* лайтбокс — більші кнопки, навігація внизу під пальці */
+    .lightbox img{max-width:96vw;max-height:76vh;}
+    .lb-btn{width:60px;height:60px;font-size:30px;}
+    .lb-prev{left:12px;top:auto;bottom:26px;transform:none;}
+    .lb-next{right:12px;top:auto;bottom:26px;transform:none;}
+    .lb-close{width:46px;height:46px;top:14px;right:14px;}
+    .lb-counter{bottom:auto;top:20px;left:20px;transform:none;}
+  }
+
+  @media print{
+    .controls{display:none;}
+    .card{break-inside:avoid;box-shadow:none;}
+    header{background:var(--green-dark)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>🍇 Каталог винограду</h1>
+  <p>Посадковий матеріал — в наявності</p>
+  <div class="prices">
+    <span class="price-tag">Чубуки — 50 грн</span>
+    <span class="price-tag">Саджанці — 150 грн</span>
+  </div>
+  <div class="contacts">
+    <span class="ci">
+      <svg viewBox="0 0 24 24"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>
+      с. Колодеже, Волинська обл.
+    </span>
+    <span class="ci">
+      <svg viewBox="0 0 24 24"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.2.2 2.4.6 3.6.1.4 0 .8-.3 1l-2.2 2.2z"/></svg>
+      Микола — <a href="tel:+380989593780">098 959 37 80</a>
+    </span>
+  </div>
+</header>
+
+<div class="controls">
+  <input type="text" id="search" placeholder="Пошук за назвою...">
+  <select id="filterType">
+    <option value="all">Усі типи</option>
+    <option value="Столовий">Столові</option>
+    <option value="Кишмиш">Кишмиші (безнасінні)</option>
+  </select>
+  <select id="filterColor">
+    <option value="all">Будь-який колір</option>
+    <option value="Білий">Білий / зелений</option>
+    <option value="Рожевий">Рожевий</option>
+    <option value="Червоний">Червоний</option>
+    <option value="Синій">Синій / чорний</option>
+  </select>
+  <select id="filterRipen">
+    <option value="all">Будь-який термін</option>
+    <option value="Надранній">Надранній</option>
+    <option value="Ранній">Ранній</option>
+    <option value="Середньоранній">Середньоранній</option>
+    <option value="Середній">Середній</option>
+    <option value="Пізній">Пізній</option>
+  </select>
+  <span class="count" id="count"></span>
+</div>
+
+<main>
+  <div class="grid" id="grid"></div>
+</main>
+
+<!-- Модалка сорту -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modal">
+    <div class="modal-gallery">
+      <button class="modal-close" id="modalClose" aria-label="Закрити">&times;</button>
+      <div class="mg-main" id="mgMain"></div>
+      <div class="mg-thumbs" id="mgThumbs"></div>
+    </div>
+    <div class="modal-info" id="modalInfo"></div>
+  </div>
+</div>
+
+<!-- Лайтбокс -->
+<div class="lightbox" id="lightbox">
+  <button class="lb-btn lb-close" id="lbClose" aria-label="Закрити">&times;</button>
+  <button class="lb-btn lb-prev" id="lbPrev" aria-label="Попереднє">&#10094;</button>
+  <img id="lbImg" src="" alt="">
+  <button class="lb-btn lb-next" id="lbNext" aria-label="Наступне">&#10095;</button>
+  <div class="lb-counter" id="lbCounter"></div>
+</div>
+
+<footer>
+  <div style="font-size:15px;color:var(--text);margin-bottom:10px;">
+    📍 с. Колодеже, Волинська обл.&nbsp;&nbsp;•&nbsp;&nbsp;📞 Микола — <a href="tel:+380989593780" style="color:var(--green-dark);font-weight:700;text-decoration:none;">098 959 37 80</a>
+  </div>
+  Клік по картці — опис, характеристики та галерея фото. Фото для кожного сорту лежать у своїй папці <code>images/&lt;сорт&gt;/</code> (файли <code>1.jpg</code>, <code>2.jpg</code>, <code>3.jpg</code>…, де <code>1.jpg</code> — головне/мініатюра) — див. <code>README.md</code>. Характеристики орієнтовні, можуть відрізнятися залежно від умов вирощування.
+</footer>
+
+<script>
+// Дані сортів. color: Білий / Рожевий / Червоний / Синій (для фільтра та кольорової позначки)
+const colorMap = {
+  "Білий":"#d8e07a","Рожевий":"#e39bb5","Червоний":"#c0392b","Синій":"#4a3b7a"
+};
+const grapes = [
+  {name:"Аркадія", type:"Столовий", color:"Білий", ripen:"Ранній (115–120 дн.)", cluster:"500–2000 г", berry:"7–15 г", taste:"Легкий мускат, гармонійний", frost:"−21 °C"},
+  {name:"Бажена", type:"Столовий", color:"Білий", ripen:"Надранній (95–105 дн.)", cluster:"600–1200 г", berry:"10–16 г", taste:"Гармонійний, солодкий", frost:"−23 °C"},
+  {name:"Болгарія стійка", type:"Столовий", color:"Білий", ripen:"Ранній (115–125 дн.)", cluster:"400–600 г", berry:"5–7 г", taste:"Мускатний", frost:"−25 °C"},
+  {name:"Білий кокл", type:"Столовий", color:"Білий", ripen:"Середній", cluster:"400–700 г", berry:"6–8 г", taste:"Простий, свіжий", frost:"−22 °C"},
+  {name:"Велика", type:"Столовий", color:"Рожевий", ripen:"Середньоранній", cluster:"700–1500 г", berry:"12–18 г", taste:"Гармонійний", frost:"−22 °C"},
+  {name:"Вальок", type:"Столовий", color:"Білий", ripen:"Середньоранній (120–130 дн.)", cluster:"700–1500 г", berry:"10–14 г", taste:"Гармонійний, щільний", frost:"−23 °C"},
+  {name:"Вікторія", type:"Столовий", color:"Рожевий", ripen:"Ранній (110–120 дн.)", cluster:"500–900 г", berry:"6–8 г", taste:"Яскравий мускат", frost:"−27 °C"},
+  {name:"Геліос", type:"Столовий", color:"Рожевий", ripen:"Надранній (105–115 дн.)", cluster:"600–1200 г", berry:"8–12 г", taste:"Легкий мускат", frost:"−23 °C"},
+  {name:"Дніпровський сувенір", type:"Столовий", color:"Синій", ripen:"Середній", cluster:"400–700 г", berry:"6–9 г", taste:"Гармонійний", frost:"−21 °C"},
+  {name:"Зірниця", type:"Столовий", color:"Рожевий", ripen:"Надранній (95–105 дн.)", cluster:"500–800 г", berry:"10–14 г", taste:"Гармонійний", frost:"−23 °C"},
+  {name:"Захоплення біле", type:"Столовий", color:"Білий", ripen:"Ранній (110–120 дн.)", cluster:"600–1500 г", berry:"8–12 г", taste:"Гармонійний, зберігається", frost:"−25 °C"},
+  {name:"Захоплення синє", type:"Столовий", color:"Синій", ripen:"Ранній (110–120 дн.)", cluster:"500–1000 г", berry:"8–12 г", taste:"Гармонійний", frost:"−24 °C"},
+  {name:"Ізюминка синя", type:"Столовий", color:"Синій", ripen:"Середній", cluster:"400–600 г", berry:"6–8 г", taste:"Солодкий, щільний", frost:"−20 °C"},
+  {name:"Ізюминка рання", type:"Столовий", color:"Рожевий", ripen:"Ранній (110–120 дн.)", cluster:"400–700 г", berry:"6–8 г", taste:"Солодкий", frost:"−21 °C"},
+  {name:"Кодрянка", type:"Столовий", color:"Синій", ripen:"Надранній (110–118 дн.)", cluster:"400–1500 г", berry:"6–8 г", taste:"Гармонійний", frost:"−22 °C"},
+  {name:"Лівія", type:"Столовий", color:"Рожевий", ripen:"Надранній (105–115 дн.)", cluster:"600–1500 г", berry:"10–13 г", taste:"Насичений мускат", frost:"−21 °C"},
+  {name:"Лора (Флора)", type:"Столовий", color:"Білий", ripen:"Ранній (110–115 дн.)", cluster:"600–1500 г", berry:"7–9 г", taste:"Солодкий, гармонійний", frost:"−23 °C"},
+  {name:"Мускат Блу", type:"Столовий", color:"Синій", ripen:"Ранній", cluster:"300–500 г", berry:"4–6 г", taste:"Яскравий мускат", frost:"−27 °C"},
+  {name:"Муромець", type:"Столовий", color:"Синій", ripen:"Ранній (110–120 дн.)", cluster:"400–600 г", berry:"4–5 г", taste:"Простий, солодкий", frost:"−26 °C"},
+  {name:"Молдова", type:"Столовий", color:"Синій", ripen:"Пізній (155–160 дн.)", cluster:"400–1000 г", berry:"6–7 г", taste:"Гармонійний, лежкий", frost:"−26 °C"},
+  {name:"Надія АЗОС", type:"Столовий", color:"Синій", ripen:"Ранній (120–130 дн.)", cluster:"500–800 г", berry:"7–9 г", taste:"Гармонійний", frost:"−22 °C"},
+  {name:"Подарок Ірині", type:"Столовий", color:"Білий", ripen:"Ранній (115–120 дн.)", cluster:"600–1000 г", berry:"8–10 г", taste:"Гармонійний", frost:"−21 °C"},
+  {name:"Подарок Запоріжжю", type:"Столовий", color:"Білий", ripen:"Середньоранній (125–130 дн.)", cluster:"800–1800 г", berry:"10–14 г", taste:"Легкий мускат", frost:"−24 °C"},
+  {name:"Преображення", type:"Столовий", color:"Рожевий", ripen:"Ранній (110–115 дн.)", cluster:"700–1500 г", berry:"12–20 г", taste:"Гармонійний, крупний", frost:"−21 °C"},
+  {name:"Памʼяті Смольникова", type:"Столовий", color:"Білий", ripen:"Надранній (105–110 дн.)", cluster:"500–800 г", berry:"10–14 г", taste:"Гармонійний", frost:"−23 °C"},
+  {name:"Ред глоуб (Red Globe)", type:"Столовий", color:"Червоний", ripen:"Пізній (150–160 дн.)", cluster:"600–1200 г", berry:"12–18 г", taste:"Простий, лежкий", frost:"−21 °C"},
+  {name:"Талісман (Кеша-1)", type:"Столовий", color:"Білий", ripen:"Середньоранній (127–135 дн.)", cluster:"800–1500 г", berry:"12–16 г", taste:"Легкий мускат", frost:"−25 °C"},
+  {name:"Ультраранній синій", type:"Столовий", color:"Синій", ripen:"Надранній (95–105 дн.)", cluster:"400–600 г", berry:"4–6 г", taste:"Солодкий", frost:"−24 °C"},
+  {name:"Софія", type:"Столовий", color:"Рожевий", ripen:"Ранній (110–115 дн.)", cluster:"600–1500 г", berry:"10–15 г", taste:"Насичений мускат", frost:"−21 °C"},
+  {name:"Цитронний Магарача", type:"Столовий/вино", color:"Білий", ripen:"Середній (130–140 дн.)", cluster:"250–400 г", berry:"2–3 г", taste:"Цитрон-мускат", frost:"−25 °C"},
+  {name:"Чорнява дівчина", type:"Столовий", color:"Синій", ripen:"Надранній (100–110 дн.)", cluster:"500–700 г", berry:"8–10 г", taste:"Гармонійний", frost:"−23 °C"},
+  {name:"Юліан", type:"Столовий", color:"Рожевий", ripen:"Надранній (95–105 дн.)", cluster:"700–1500 г", berry:"12–20 г", taste:"Гармонійний, щільний", frost:"−23 °C"},
+  // Кишмиші
+  {name:"Променистий (Кишмиш)", type:"Кишмиш", color:"Рожевий", ripen:"Середньоранній (125–135 дн.)", cluster:"400–600 г", berry:"3–4 г", taste:"Мускат, безнасінний", frost:"−18 °C"},
+  {name:"Находка (Кишмиш)", type:"Кишмиш", color:"Рожевий", ripen:"Ранній", cluster:"400–700 г", berry:"4–6 г", taste:"Гармонійний, безнасінний", frost:"−22 °C"},
+  {name:"К-ш 342 (Угорський)", type:"Кишмиш", color:"Білий", ripen:"Ранній (110–115 дн.)", cluster:"300–500 г", berry:"2–3 г", taste:"Солодкий, безнасінний", frost:"−26 °C"},
+  {name:"Русалка 6 (Кишмиш)", type:"Кишмиш", color:"Білий", ripen:"Ранній", cluster:"400–600 г", berry:"3–4 г", taste:"Мускат, безнасінний", frost:"−23 °C"},
+  {name:"Юпітер (Кишмиш)", type:"Кишмиш", color:"Синій", ripen:"Ранній (110–120 дн.)", cluster:"200–400 г", berry:"4–5 г", taste:"Мускат, безнасінний", frost:"−27 °C"}
+];
+
+// Генерація імені файлу фото з назви
+function slug(name){
+  return name
+    .toLowerCase()
+    .replace(/[()]/g,"")
+    .replace(/[ʼ'`]/g,"")
+    .replace(/[\/\\]/g,"-")
+    .replace(/\s+/g,"-")
+    .replace(/[^a-zа-яіїєґ0-9\-]/gi,"");
+}
+
+// Генерація опису сорту з реальних характеристик (без вигаданих фактів)
+function buildDesc(g){
+  const isKish = g.type.includes("Кишмиш");
+  const colorWord = {"Білий":"білими (зелено-жовтими)","Рожевий":"рожевими","Червоний":"червоними","Синій":"синьо-чорними"}[g.color] || g.color.toLowerCase();
+  let s = `«${g.name}» — ${isKish ? "безнасінний (кишмишний)" : "столовий"} сорт винограду `;
+  s += `з ${colorWord} ягодами. `;
+  s += `Термін дозрівання: ${g.ripen.toLowerCase()}. `;
+  s += `Гроно масою ${g.cluster}, ягода ${g.berry}. `;
+  s += `Смак: ${g.taste.toLowerCase()}. `;
+  s += `Витримує морози до ${g.frost}. `;
+  s += isKish
+    ? "Підходить для свіжого споживання та сушіння (родзинки)."
+    : "Призначення — столове, для свіжого споживання та продажу.";
+  return s;
+}
+
+// Пошук наявних фото галереї у ПАПЦІ сорту: images/<slug>/1.jpg, 2.jpg ... 8.jpg
+// Перевіряємо завантаженням; неіснуючі відкидаються (onerror).
+function galleryCandidates(g){
+  const dir = "images/" + slug(g.name) + "/";
+  const list = [];
+  for(let i=1;i<=8;i++){ list.push(dir + i + ".jpg"); }
+  return list;
+}
+// Головне фото (мініатюра на картці) = перше фото з папки
+function mainPhoto(g){
+  return "images/" + slug(g.name) + "/1.jpg";
+}
+
+const grid = document.getElementById("grid");
+const search = document.getElementById("search");
+const filterType = document.getElementById("filterType");
+const filterColor = document.getElementById("filterColor");
+const filterRipen = document.getElementById("filterRipen");
+const count = document.getElementById("count");
+
+const grapeIconSVG = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a2 2 0 1 1-1.9 2.6c-2.3.3-4.1 2.2-4.1 4.6 0 .5.1 1 .3 1.5A3.5 3.5 0 0 0 4 14a3.5 3.5 0 0 0 3.5 3.5c.3 0 .6 0 .9-.1A3.5 3.5 0 0 0 12 20a3.5 3.5 0 0 0 3.6-2.6c.3.1.6.1.9.1A3.5 3.5 0 0 0 20 14a3.5 3.5 0 0 0-2.3-3.3c.2-.5.3-1 .3-1.5 0-2.4-1.8-4.3-4.1-4.6A2 2 0 0 1 12 2z"/></svg>`;
+
+function render(){
+  const q = search.value.trim().toLowerCase();
+  const t = filterType.value;
+  const c = filterColor.value;
+  const r = filterRipen.value;
+  grid.innerHTML = "";
+  let shown = 0;
+  grapes.forEach((g,idx)=>{
+    if(q && !g.name.toLowerCase().includes(q)) return;
+    if(t!=="all" && !g.type.includes(t)) return;
+    if(c!=="all" && g.color!==c) return;
+    // термін дозрівання: порівнюємо за першим словом (щоб "Ранній" не ловив "Надранній"/"Середньоранній")
+    if(r!=="all" && g.ripen.split(/[\s(]/)[0] !== r) return;
+    shown++;
+    const file = mainPhoto(g);
+    const isKish = g.type.includes("Кишмиш");
+    const dot = colorMap[g.color] || "#ccc";
+    const card = document.createElement("div");
+    card.className = "card";
+    card.addEventListener("click", ()=>openModal(idx));
+    card.innerHTML = `
+      <div class="photo">
+        <span class="badge ${isKish?'kishmish':''}">${isKish?'Кишмиш':'Столовий'}</span>
+        <img src="${file}" alt="${g.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div class="ph" style="display:none;flex-direction:column;">
+          ${grapeIconSVG}
+          Додайте фото:<br><code>images/${slug(g.name)}/1.jpg</code>
+        </div>
+      </div>
+      <div class="body">
+        <h3 class="name">${g.name}</h3>
+        <div class="meta"><span class="color-dot" style="background:${dot}"></span>${g.color} • ${g.ripen}</div>
+        <ul class="specs">
+          <li><span>Гроно</span><span>${g.cluster}</span></li>
+          <li><span>Ягода</span><span>${g.berry}</span></li>
+          <li><span>Смак</span><span>${g.taste}</span></li>
+          <li><span>Морозостійкість</span><span>${g.frost}</span></li>
+        </ul>
+        <div class="avail">
+          <div class="item"><div class="t">Чубук</div><div class="p">50 грн</div></div>
+          <div class="item"><div class="t">Саджанець</div><div class="p">150 грн</div></div>
+        </div>
+        <div class="more-hint">Детальніше та фото ↗</div>
+      </div>`;
+    grid.appendChild(card);
+  });
+  count.textContent = shown + " сорт(ів)";
+}
+
+/* ============ МОДАЛКА + ГАЛЕРЕЯ ============ */
+const modalOverlay = document.getElementById("modalOverlay");
+const modalClose = document.getElementById("modalClose");
+const mgMain = document.getElementById("mgMain");
+const mgThumbs = document.getElementById("mgThumbs");
+const modalInfo = document.getElementById("modalInfo");
+
+let currentPhotos = [];   // список реально завантажених фото поточного сорту
+let currentPhoto = 0;
+
+function openModal(idx){
+  const g = grapes[idx];
+  const isKish = g.type.includes("Кишмиш");
+  const dot = colorMap[g.color] || "#ccc";
+
+  // Інфо-панель
+  modalInfo.innerHTML = `
+    <h2>${g.name}</h2>
+    <div class="sub"><span class="color-dot" style="background:${dot}"></span>${g.color} • ${isKish?'Кишмиш (безнасінний)':'Столовий'} • ${g.ripen}</div>
+    <p class="desc">${buildDesc(g)}</p>
+    <ul class="specs">
+      <li><span>Тип</span><span>${g.type}</span></li>
+      <li><span>Колір</span><span>${g.color}</span></li>
+      <li><span>Термін дозрівання</span><span>${g.ripen}</span></li>
+      <li><span>Маса грона</span><span>${g.cluster}</span></li>
+      <li><span>Маса ягоди</span><span>${g.berry}</span></li>
+      <li><span>Смак</span><span>${g.taste}</span></li>
+      <li><span>Морозостійкість</span><span>${g.frost}</span></li>
+    </ul>
+    <div class="avail">
+      <div class="item"><div class="t">Чубук</div><div class="p">50 грн</div></div>
+      <div class="item"><div class="t">Саджанець</div><div class="p">150 грн</div></div>
+    </div>
+    <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);font-size:14px;color:var(--muted);">
+      📍 с. Колодеже, Волинська обл.<br>
+      📞 Микола — <a href="tel:+380989593780" style="color:var(--green-dark);font-weight:700;text-decoration:none;">098 959 37 80</a>
+    </div>`;
+
+  // Галерея: пробуємо завантажити кандидатів, залишаємо лише наявні
+  currentPhotos = [];
+  currentPhoto = 0;
+  mgThumbs.innerHTML = "";
+  mgMain.innerHTML = `<div class="ph">${grapeIconSVG}Фото ще не додано.<br>Покладіть у папку <code>images/${slug(g.name)}/</code><br>файли <code>1.jpg</code>, <code>2.jpg</code>, <code>3.jpg</code>…</div>`;
+
+  const candidates = galleryCandidates(g);
+  candidates.forEach(src=>{
+    const probe = new Image();
+    probe.onload = ()=>{ addPhoto(src); };
+    probe.src = src;
+  });
+
+  modalOverlay.classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+
+function addPhoto(src){
+  // зберігаємо порядок кандидатів, уникаємо дублів
+  if(currentPhotos.includes(src)) return;
+  currentPhotos.push(src);
+
+  // мініатюра
+  const th = document.createElement("img");
+  th.src = src;
+  th.addEventListener("click", ()=> showPhoto(currentPhotos.indexOf(src)));
+  mgThumbs.appendChild(th);
+
+  // якщо це перше фото — показати в головній області
+  if(currentPhotos.length === 1){
+    showPhoto(0);
+  }
+  // одна мініатюра не потрібна, якщо фото одне — ховаємо смугу
+  mgThumbs.style.display = currentPhotos.length > 1 ? "flex" : "none";
+}
+
+function showPhoto(i){
+  if(!currentPhotos.length) return;
+  currentPhoto = (i + currentPhotos.length) % currentPhotos.length;
+  const src = currentPhotos[currentPhoto];
+  mgMain.innerHTML = `<img src="${src}" alt="фото">`;
+  mgMain.querySelector("img").addEventListener("click", ()=> openLightbox(currentPhoto));
+  [...mgThumbs.children].forEach((t,idx)=> t.classList.toggle("active", idx===currentPhoto));
+}
+
+function closeModal(){
+  modalOverlay.classList.remove("open");
+  document.body.style.overflow = "";
+}
+modalClose.addEventListener("click", closeModal);
+modalOverlay.addEventListener("click", e=>{ if(e.target===modalOverlay) closeModal(); });
+
+/* ============ ЛАЙТБОКС (фото на весь екран) ============ */
+const lightbox = document.getElementById("lightbox");
+const lbImg = document.getElementById("lbImg");
+const lbPrev = document.getElementById("lbPrev");
+const lbNext = document.getElementById("lbNext");
+const lbClose = document.getElementById("lbClose");
+const lbCounter = document.getElementById("lbCounter");
+
+function openLightbox(i){
+  if(!currentPhotos.length) return;
+  showLb(i);
+  lightbox.classList.add("open");
+}
+function showLb(i){
+  currentPhoto = (i + currentPhotos.length) % currentPhotos.length;
+  lbImg.src = currentPhotos[currentPhoto];
+  lbCounter.textContent = (currentPhoto+1) + " / " + currentPhotos.length;
+  const single = currentPhotos.length <= 1;
+  lbPrev.style.display = single ? "none" : "block";
+  lbNext.style.display = single ? "none" : "block";
+}
+lbPrev.addEventListener("click", e=>{ e.stopPropagation(); showLb(currentPhoto-1); });
+lbNext.addEventListener("click", e=>{ e.stopPropagation(); showLb(currentPhoto+1); });
+lbClose.addEventListener("click", ()=> lightbox.classList.remove("open"));
+lightbox.addEventListener("click", e=>{ if(e.target===lightbox) lightbox.classList.remove("open"); });
+
+// Клавіатура
+document.addEventListener("keydown", e=>{
+  if(lightbox.classList.contains("open")){
+    if(e.key==="Escape") lightbox.classList.remove("open");
+    if(e.key==="ArrowLeft") showLb(currentPhoto-1);
+    if(e.key==="ArrowRight") showLb(currentPhoto+1);
+  } else if(modalOverlay.classList.contains("open")){
+    if(e.key==="Escape") closeModal();
+  }
+});
+
+search.addEventListener("input", render);
+filterType.addEventListener("change", render);
+filterColor.addEventListener("change", render);
+filterRipen.addEventListener("change", render);
+render();
+</script>
+</body>
+</html>
